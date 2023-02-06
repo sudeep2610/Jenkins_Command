@@ -4,7 +4,7 @@ Jenkins is a self-contained Java-based program, ready to run out-of-the-box, wit
 
 
 ### Prerequisites
-1. EC2 Centos Instance 
+1. EC2 Ubuntu Instance 
    - With Internet Access
    - Security Group with Port `8080` open for internet
 
@@ -13,31 +13,34 @@ Jenkins is a self-contained Java-based program, ready to run out-of-the-box, wit
 ## Install Java
 Update the OS
 
-```sudo yum update -y```
+```sudo apt update -y```
 
 We will be using open java for our demo, Get latest version from http://openjdk.java.net/install/
 ```sh
-sudo yum -y install java-1.8*
-#sudo yum -y install java-1.8.0-openjdk
+sudo apt install openjdk-11-jre
 ```
 
 ### Confirm Java Version
 Lets install java and set the java home
 ```sh
 java -version
-find /usr/lib/jvm/java-1.8* | head -n 3
+#find java path
+find /usr  openjdk -type l 2>/dev/null | grep '^/usr/lib/jvm/java' | grep openjdk-amd64$
+#assign the java path to an env var
+javahome=`find /usr  openjdk -type l 2>/dev/null | grep '^/usr/lib/jvm/java' | grep openjdk-amd64$`
 #Add JAVA_HOME and update of PATH to ~/.bash_profile
 #example value set below
-echo 'export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.312.b07-1.el7_9.x86_64' >> ~/.bash_profile
-echo 'PATH=$PATH:$JAVA_HOME' >> ~/.bash_profile
-echo 'export PATH' >> ~/.bash_profile
-chmod 755 ~/.bash_profile
+echo "export JAVA_HOME=$javahome" >> ~/.bashrc
+echo 'PATH=$PATH:$JAVA_HOME' >> ~/.bashrc
+echo 'export PATH' >> ~/.bashrc
+chmod 755 ~/.bashrc
 ```
-### To set it permanently update your .bash_profile
+### To set it permanently update your .bashrc
 
 ```sh
-~/.bash_profile
+. ~/.bashrc
 ```
+
 ```
 [root@~]# java -version
 openjdk version "1.8.0_151"
@@ -46,24 +49,26 @@ OpenJDK 64-Bit Server VM (build 25.151-b12, mixed mode)
 ```
 
 ## Install Jenkins
-You can install jenkins using the rpm or by setting up the repo. We will setup the repo so that we can update it easily in future.
-Get latest version of jenkins from https://pkg.jenkins.io/redhat-stable/
+
+This is as per the instructions on https://www.jenkins.io/doc/book/installing/linux/
+
 ```sh
-sudo su
-yum install epel-release -y
-yum -y install wget
-wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
-rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key
-yum -y install jenkins
+curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo tee \
+  /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
+  https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
+  /etc/apt/sources.list.d/jenkins.list > /dev/null
+sudo apt-get update
+sudo apt-get install jenkins
 ```
 
 ### Start Jenkins
 ```sh
 # Start jenkins service
-systemctl start jenkins
+sudo systemctl start jenkins
 
 # Setup Jenkins to start at boot,
-systemctl enable jenkins
+sudo systemctl enable jenkins
 ```
 
 #### Accessing Jenkins
